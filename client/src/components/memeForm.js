@@ -50,21 +50,56 @@ export default function MemeForm(props) {
 
     const handleSubmit = e => {
         e.preventDefault();
-        axios
-            .post("http://localhost:5000/add-meme", {
-                text: caption,
-                image,
-                favorite
+        if (props.editMode) {
+            fetch(`http://localhost:5000/meme/${props.id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json"
+                },
+                body: JSON.stringify({
+                    text: caption,
+                    favorite
+                })
             })
-            .then(() => {
-                setCaption("")
-                setImage("")
-                setFavorite(false)
-                imageRef.current.dropzone.removeAllFiles()
-            })
-            .then(navigate("/"))
-            .catch(err => console.log('Form submit error: ', err));
+                .then(() => {
+                    setCaption("")
+                    setImage("")
+                    setFavorite(false)
+                    imageRef.current.dropzone.removeAllFiles()
+                })
+                .then(() => navigate("/"))
+                .catch(err => console.log('PUT error: ', err));
+        } else {
+            axios
+                .post("http://localhost:5000/add-meme", {
+                    text: caption,
+                    image,
+                    favorite
+                })
+                .then(() => {
+                    setCaption("")
+                    setImage("")
+                    setFavorite(false)
+                    imageRef.current.dropzone.removeAllFiles()
+                })
+                .then(() => navigate("/"))
+                .catch(err => console.log('Form submit error: ', err));
+        }
+
     }
+
+    useEffect(() => {
+        if (props.editMode) {
+            fetch(`http://localhost:5000/meme/${props.id}`)
+                .then(res => res.json())
+                .then(data => {
+                    setCaption(data.text)
+                    setFavorite(data.favorite)
+                })
+                .catch(err => console.log('Get one Meme err: ', err));
+        }
+    }, [])
 
     return (
         <div>
